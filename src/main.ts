@@ -34,9 +34,14 @@ app.set('view engine','ejs');
 
 app.use(routerGlobal);
 
-// error handler
+//Handler GET 404 for not found
+app.use((req:Request, res:Response)=> {
+  return res.status(404).json({message:'Request not found'});
+});
+
+//Error Handler
 app.use((err:errorType, req:Request, res:Response, next:NextFunction)=> {
-    
+
   if (err.code){
       if (err.code !== 'EBADCSRFTOKEN') return next(err)
   }
