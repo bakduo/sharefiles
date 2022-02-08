@@ -1,6 +1,7 @@
 import { app } from "../src/main";
+import { appconfig } from '../src/config/configure';
 
-const puerto = process.env.PORT || 8080;
+const puerto = appconfig.port || 8080;
 
 const server = app.listen(puerto, () => {
     console.log(`servidor escuchando en http://localhost:${puerto}`);

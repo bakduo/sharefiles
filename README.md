@@ -5,7 +5,8 @@ Sharefiles by ephemeral user.
 
 - [X] backend express.
 - [X] TypeScript
-- [ ] CRUD file.
-- [ ] sharelinke
-- [ ] frontend Angular.
-- [ ] Container.
+- [X] CRUD file.
+- [X] sharelinks by token.
+- [X] secure CSRF
+- [X] EJS.
+- [X] Container. In Progress

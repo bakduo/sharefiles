@@ -1,32 +1,42 @@
+import { loggerApp } from './../config/configure';
 import {Request} from 'express';
+
+import { v4 as uuid } from 'uuid';
 
 import multer, { FileFilterCallback } from 'multer';
 
 import { mkdirSync} from 'fs';
 
 import { CustomRequest, MyType } from '../controller/archivo';
+import { appconfig } from '../config/configure';
 
 const MimeAvailable:string[] = ['image/png','image/jpg','image/jpeg','text/plain','application/pdf','text/x-shellscript','application/zip'];
 
 export interface ICollector {
-  addItem(item:string):void;
-  getAll():string[];
+  addItem(orig:string,item:string):void;
+  getAll():ItemFile[];
   clear():void;
+}
+
+export interface ItemFile {
+  id:string;
+  orig: string;
+  name:string;
 }
 
 class CollectorFiles implements ICollector{
   
-  private files:string[];
+  private files:ItemFile[];
 
   constructor(){
     this.files = [];
   }
 
-  addItem(item:string){
-    this.files.push(item);
+  addItem(orig:string,item:string){
+    this.files.push({orig:orig,name:item,id:uuid()});
   }
 
-  getAll(){
+  getAll():ItemFile[]{
     return this.files;
   }
 
@@ -47,35 +57,35 @@ const storage = multer.diskStorage({
 
     destination: function (req:Request, file:Express.Multer.File, callback:DestinationCallback) {
        try {
-          mkdirSync('uploads');
+          mkdirSync(appconfig.rootpathfile);
         } catch (error:unknown) {
-            const err = error as MyType
-            console.error(err.message);
+            const err = error as MyType;
+            loggerApp.error(`Exception destination diskStorage: ${err.message}`);
        }
-       callback(null, 'uploads');
+       callback(null, appconfig.rootpathfile);
     },
   
     filename: function (req:CustomRequest, file:Express.Multer.File, callback:FileNameCallback) {
       const nombre = `${Date.now()}-${file.originalname}`;
         try {
-        tmpFiles.addItem(nombre);
+        tmpFiles.addItem(file.originalname,nombre);
         req.listFiles = tmpFiles;
         callback(null, nombre);
       } catch (error) {
-        const err = error as MyType
-        console.error(err.message);
+        const err = error as MyType;
+        loggerApp.error(`Exception filename diskStorage: ${err.message}`);
         callback(new Error(`Error en la funcionalidad filename: ${err.message}`),nombre);
       }
     }
   });
   
-  //maximo 2MB
+  //maximo 4MB
   export const upload = multer(
   {
   limits: { fileSize: 4 * 1024 * 1024 },
   storage: storage,
   fileFilter : (req:Request, file:Express.Multer.File, cb:FileFilterCallback) => {
-      console.log(file);
+      loggerApp.debug(`Agregando file ${file.mimetype}`);
       if (MimeAvailable.includes(file.mimetype)){
       //if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
         cb(null, true);

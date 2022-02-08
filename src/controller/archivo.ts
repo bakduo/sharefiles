@@ -1,6 +1,14 @@
 import {Request, Response, NextFunction} from 'express';
 
-import { ICollector } from '../services/upload';
+import { ICollector, ItemFile } from '../services/upload';
+
+import { v4 as uuid } from 'uuid';
+import { LinkUser } from '../dao/links';
+import { IGenericDB } from '../datasources/storage/generic';
+import { LinkUserDTO } from '../dto/link-user';
+import { appconfig, loggerApp } from '../config/configure';
+import { CipherEasy, IHashCiper } from '../services/cipher';
+import { unlinkSync } from 'fs';
 
 export interface CustomRequest extends Request {
     finalFile?: string,
@@ -22,58 +30,145 @@ export const CODE_UPLOAD_MULTER=1;
 
 export const CODE_UPLOAD_DEFAULT=2;
 
+//const bufferEnc = crypto.randomBytes(24);
+
 export class ArchivoController {
 
- 
-    saveMultiControl(req:Request, res:Response):Response {
+    dmodel : IGenericDB<LinkUser | LinkUserDTO >;
+
+    constructor(dao:IGenericDB<LinkUser|LinkUserDTO>){
+
+      this.dmodel = dao;
+      //https://stackoverflow.com/questions/31362292/how-to-use-arrow-functions-public-class-fields-as-class-methods
+      //It's not Good for me. I prefeer arrow function
+      //this.saveMultiControl = this.saveMultiControl.bind(this);
+    }
+
+    getFile = async (req:CustomRequest, res:Response,next:NextFunction):Promise<Response | void> => {
+      
+      const {id} = req.params;
+
+      const {token,content } = req.query;
+
+      if (id && token && content){
+
+        const encrypt = new CipherEasy({
+          algorithm:appconfig.encrypt.algorithm,
+          secretKey:appconfig.encrypt.secretKey
+        });
+
+        const tokenDecrypt = encrypt.decrypt({
+          'iv':token.toString(),
+          'content':content.toString()
+        });
+
+        const fileObj = await this.dmodel.findOne({keycustom:'uuid',valuecustom:id});
+
+        if (fileObj){
+
+          const {deadline} = fileObj;
+
+          if (deadline){
+            if (deadline===Number(tokenDecrypt)){
+
+              return res.status(200).sendFile(fileObj.pathfile, {
+                root: '.'
+            }, function (err) {
+                if (err) {
+                    loggerApp.error(`Exception Sent: ${fileObj.pathfile} ${err.message}`);
+                    next(err);
+                } else {
+                    loggerApp.info(`Sent: ${fileObj.pathfile}`);
+                    next();
+                }
+            });
+            }
+          } 
+        }
+      }
+      return res.status(403).json({status:false,message:'Exception invalid request'});
+    }
+
+    //I prefeer arrow function.
+    saveMultiControl = async (req:CustomRequest, res:Response):Promise<Response> => {
 
         const files = req.files;
-    
+
+        const collection:ICollector = req.listFiles as ICollector;
+
+        const archivos = collection.getAll();
+
         if (!files) {
       
           return res.status(500).json({status:false,message:'Error procesar archivo'});
         }
-      const archivosTransform = files as Array<Express.Multer.File>;
+     
+        const resultado:object[] = [];
+
+        try {
   
-      const archivos = archivosTransform.map((item)=>item.originalname);
-      /*
-      {
-      fieldname: 'archivosuser',
-      originalname: 'Captura de pantalla_2021-12-10_10-40-35.png',
-      encoding: '7bit',
-      mimetype: 'image/png'
-      }
-      */
+          for (const item of archivos) {
+
+            const idFile = uuid();
+            //Hasta 4 dias
+            const finalDate = new Date((Date.now() + 400000000)).getTime();
+
+            const encrypt = new CipherEasy({
+              algorithm:appconfig.encrypt.algorithm,
+              secretKey:appconfig.encrypt.secretKey
+            });
+
+            let hash:IHashCiper; 
+            try {
+              hash = encrypt.encrypt(finalDate.toString());
+            } catch (error:unknown) {
+              const err = error as MyType;
+
+              loggerApp.error(`Exception on encrypt.encrypt: ${err.message}`);
+
+              throw new Error(`Exception on IHashCiper into file`);
+            }
+
+            const url = `${appconfig.protocol}://${appconfig.hostname}/${idFile}?token=${hash.iv}&content=${hash.content}`;
+  
+            try {
+  
+              const itemSave = await this.dmodel.saveOne({
+                  url:`${url}`,
+                  uuid: idFile,
+                  deadline:finalDate,
+                  deleted:false,
+                  ephemeral:false,
+                  pathfile:appconfig.rootpathfile+item.name
+                });
     
-      return res.status(200).json({files:archivos,status:true});
+                if (itemSave){
+                  resultado.push({link:url,name:item.orig});
+                }
+                  
+              } catch (error:unknown) {
+              
+                const err = error as MyType;
 
-        // return upload.array('archivouser',4)(req, res, function (errN:unknown) {
-            
-        //         const err = errN as MyType;
+                unlinkSync(appconfig.rootpathfile+item.name);
 
-        //         const files = req.files;
+                loggerApp.error(`Exception on this.dmodel.saveOne into MongoDB ${err.message}`);
+  
+                throw new Error(`Exception on this.dmodel.saveOne into MongoDB`);
+              }
+            }
+  
+            return res.status(200).json({files:resultado,status:true,message:'OK'});
+  
+          }catch(error:unknown) {
 
-        //         if (!files) {
-                
-        //             return res.status(500).json({status:false,message:'Error procesar archivo'});
-        //         }
-            
-        //         if (err instanceof multer.MulterError) {
-        //             return res.status(500).send({ message: `Multer uploading error: ${err.message}` ,code:CODE_UPLOAD_MULTER}).end();
-        //         } else if (err) {
-        //             //Errores que no son de multer
-        //             console.log(err.message);
-        //             return res.status(500).send({ message: `uploading error: ${err.message}`,code:CODE_UPLOAD_DEFAULT }).end();
-        //         }
+            const err = error as MyType
 
-        //         const archivosTransform = files as Array<Express.Multer.File>;
-    
-        //         const archivos = archivosTransform.map((item)=>item.originalname);
+            loggerApp.error(`Exception on SaveLink into MongoDB ${err.message}`);
 
-        //         return res.status(200).json({files:archivos,status:true});
-        
-        //     }
-        // );
+            return res.status(500).json({files:null,status:false,message:err.message});
+          }
+  
     }
 
     saveOne(req:Request, res:Response, next:NextFunction):Response{
@@ -90,7 +185,8 @@ export class ArchivoController {
       } catch (error:unknown) {
         const err = error as MyType
         err.httpStatusCode = 500;
-        throw new Error(`Error en la funcionalidad filename: ${err.message}`);
+        loggerApp.error(`Exception on saveOne: ${err.message}`);
+        throw new Error(`Exception en la funcionalidad filename: ${err.message}`);
       }
     }
 
@@ -105,15 +201,7 @@ export class ArchivoController {
         const archivosTransform = files as Array<Express.Multer.File>;
     
         const archivos = archivosTransform.map((item)=>item.originalname);
-        /*
-        {
-        fieldname: 'archivosuser',
-        originalname: 'Captura de pantalla_2021-12-10_10-40-35.png',
-        encoding: '7bit',
-        mimetype: 'image/png'
-        }
-        */
-      
+ 
         return res.status(200).json({files:archivos,status:true});
     }
 

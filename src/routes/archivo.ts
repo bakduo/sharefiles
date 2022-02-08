@@ -10,7 +10,11 @@ import { upload } from '../services/upload';
 
 import { protectionMiddleware, checkToken } from '../middleware/csrf';
 
-const controller = new ArchivoController();
+import { MLinkUser } from '../dao/mongo/link-user';
+
+const daoLink = new MLinkUser();
+
+const controller = new ArchivoController(daoLink);
 
 export const routerArchivo = express.Router();
 
@@ -20,11 +24,13 @@ routerArchivo.get('/',protectionMiddleware,(req:Request,res:Response)=>{
 
 });
   
-routerArchivo.post('/uploadfile',[upload.single('archivouser'),check],controller.saveOne);
+//routerArchivo.post('/uploadfile',[upload.single('archivouser'),check],controller.saveOne);
 
-routerArchivo.post('/uploadfiles', [upload.array('archivosuser', 4)],controller.saveMulti);
+//routerArchivo.post('/uploadfiles', [upload.array('archivosuser', 4)],controller.saveMulti);
 
 routerArchivo.post('/uploadfilescheck',[protectionMiddleware,upload.array('archivosuser', 4),checkFiles],controller.saveMultiControl);
+
+routerArchivo.get('/:id',[protectionMiddleware],controller.getFile);
 
   
   

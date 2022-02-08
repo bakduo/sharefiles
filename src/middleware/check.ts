@@ -2,26 +2,18 @@ import {Response, NextFunction} from 'express';
 import { readSync,unlinkSync, openSync, closeSync} from 'fs';
 import imageType from 'image-type';
 import { CustomRequest } from '../controller/archivo';
-import { ICollector } from '../services/upload';
+import { ICollector, ItemFile } from '../services/upload';
+import { appconfig } from '../config/configure';
 
-interface ErrorMiddleware extends Error {
+interface ErrorMiddleware extends TypeError {
     code?:string;
 }
 
-type errorType = ErrorMiddleware;
-
-export function errorHandler(err:errorType, req:Request, res:Response, next:NextFunction){
-    
-    if (err.code !== 'EBADCSRFTOKEN') return next(err)
-  
-    // handle CSRF token errors here
-    res.status(403)
-    res.send('form tampered with')
-}
+export type errorType = ErrorMiddleware;
 
 export function check(req:CustomRequest,res:Response,next:NextFunction){
 
-    const file = 'uploads/'+req.finalFile;
+    const file = appconfig.rootpathfile+req.finalFile;
      //Patch para hacer un check de archivo cuando el filter es insuficiente
     const buff = Buffer.alloc(12);
     const fd = openSync(file, 'r');
@@ -47,8 +39,9 @@ export function checkFiles(req:CustomRequest,res:Response,next:NextFunction){
 
     let breakFail = true;
 
-    const checkAll = archivos.every((item)=>{
-        const file = 'uploads/'+item;
+    const checkAll = archivos.every((item:ItemFile)=>{
+        //const file = 'uploads/'+item.name;
+        const file = appconfig.rootpathfile + item.name;
         const buff = Buffer.alloc(12);
         const fd = openSync(file, 'r');
         readSync(fd,buff,0,12,0);
