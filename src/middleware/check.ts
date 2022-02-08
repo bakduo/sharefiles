@@ -40,7 +40,6 @@ export function checkFiles(req:CustomRequest,res:Response,next:NextFunction){
     let breakFail = true;
 
     const checkAll = archivos.every((item:ItemFile)=>{
-        //const file = 'uploads/'+item.name;
         const file = appconfig.rootpathfile + item.name;
         const buff = Buffer.alloc(12);
         const fd = openSync(file, 'r');
