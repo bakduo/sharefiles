@@ -1,5 +1,10 @@
-//(function(){
-            function enviarFile(){
+let MSend = (function(){
+    
+    'use strict';
+
+    return  {
+
+        enviarFile: function (){
 
                 const link=document.getElementById("resultado");
 
@@ -51,6 +56,8 @@
 
                 
 
-            }
+       }
+
+    }
             
-//}());
+})();

@@ -34,7 +34,7 @@
 
         <hr class="my-4">
     
-        <input type="Submit" id="enviarfile" onclick="enviarFile()" class="btn btn-primary btn-lg" value="Submit"/>
+        <input type="Submit" id="enviarfile" onclick="sendFile();" class="btn btn-primary btn-lg" value="Submit"/>
 
         <hr class="my-4">
 
@@ -48,6 +48,15 @@
 
 
     <script src="js/main.js"></script>
+
+    <script>
+
+        function sendFile(){
+            MSend.enviarFile();
+        }
+        
+    </script>
+
 </body>
 
 </html>

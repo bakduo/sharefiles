@@ -24,7 +24,7 @@ RUN npm run build
 
 ENV HOST=0.0.0.0 PORT=3000
 
-VOLUME [ "config/","uploads/"]
+VOLUME [ "config/","uploads/","log/"]
 
 EXPOSE ${PORT}
 
