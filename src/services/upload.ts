@@ -79,10 +79,10 @@ const storage = multer.diskStorage({
     }
   });
   
-  //maximo 4MB
+  //maximo 10MB
   export const upload = multer(
   {
-  limits: { fileSize: 4 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 },
   storage: storage,
   fileFilter : (req:Request, file:Express.Multer.File, cb:FileFilterCallback) => {
       loggerApp.debug(`Agregando file ${file.mimetype}`);
