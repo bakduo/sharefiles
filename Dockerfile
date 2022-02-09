@@ -28,4 +28,4 @@ VOLUME [ "config/","uploads/","log/"]
 
 EXPOSE ${PORT}
 
-CMD [ "node", "." ]
+CMD [ "npm", "run", "start:prod" ]

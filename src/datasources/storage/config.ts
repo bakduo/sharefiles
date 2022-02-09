@@ -22,5 +22,10 @@ export interface IConfigDB {
     rootpathfile:string;
     session:{
         secret:string;
+    },
+    memcached:{
+        server:string,
+        port:number,
+        secret:string;
     }
 }

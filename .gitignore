@@ -162,3 +162,4 @@ dist
 uploads/
 config/
 mochawesome-report/
+deploy-memcached.yml

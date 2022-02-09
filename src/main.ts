@@ -6,6 +6,9 @@ import session from 'express-session';
 import { appconfig } from './config/configure';
 import { errorType } from './middleware/check';
 import { routerGlobal } from './routes/index';
+import ConnectMemcached = require('connect-memcached');
+
+const MemcachedStore = ConnectMemcached(session);
 
 export const app = express();
 
@@ -15,7 +18,13 @@ app.use(
   session({
     secret: appconfig.session.secret || 'eb4378274c564f2d56b2316f976cb86bf76643159b21',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    store: new MemcachedStore({
+      ttl: 1,
+      hosts: [`${appconfig.memcached.server}:${appconfig.memcached.port}`],
+      secret: appconfig.memcached.secret, // Optionally use transparent encryption for memcache session data,
+      prefix: "sharelink_"
+    })
   }),
 );
 
