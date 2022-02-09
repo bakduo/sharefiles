@@ -91,7 +91,7 @@ const storage = multer.diskStorage({
         cb(null, true);
       } else {
         cb(null, false);
-        return cb(new Error('Solo esta permitido los siguientes formatos: .png, jpg y jpeg'));
+        return cb(new Error('Solo esta permitido los siguientes formatos: .png, jpg, jpeg, pdf y zip'));
       }
     }
   });
