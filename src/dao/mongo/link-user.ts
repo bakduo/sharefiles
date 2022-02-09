@@ -3,8 +3,7 @@ import { LinkUser } from '../links';
 
 import { Model } from 'mongoose';
 import { SchemaLinkUser } from "../../schemas/link-user";
-import { MongoConnect } from "../../datasources/storage/mongo";
-import { appconfig, loggerApp } from "../../config/configure";
+import { loggerApp, connectionDB } from '../../config/configure';
 import { LinkUserDTO } from '../../dto/link-user';
 import { MyType } from "../../controller/archivo";
 
@@ -21,13 +20,7 @@ export class MLinkUser implements IGenericDB<LinkUser|LinkUserDTO> {
     constructor(){
         try {
 
-            const mongo = MongoConnect.getInstance(
-                appconfig.db.mongo.url,
-                appconfig.db.mongo.user,
-                appconfig.db.mongo.pass,
-                appconfig.db.mongo.dbname).getConnection();
-            
-            this.model = mongo.model<LinkUser>('LinkUser',SchemaLinkUser);
+            this.model = connectionDB.model<LinkUser>('LinkUser',SchemaLinkUser);
 
         } catch (error:unknown) {
             const err = error as MyType;

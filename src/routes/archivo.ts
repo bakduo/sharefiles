@@ -2,13 +2,13 @@ import express from 'express';
 
 import {Request, Response} from 'express';
 
-import { check, checkFiles } from '../middleware/check';
+import { checkFiles } from '../middleware/check';
 
 import { ArchivoController } from '../controller/archivo';
 
 import { upload } from '../services/upload';
 
-import { protectionMiddleware, checkToken } from '../middleware/csrf';
+import { protectionMiddleware } from '../middleware/csrf';
 
 import { MLinkUser } from '../dao/mongo/link-user';
 
