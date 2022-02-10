@@ -1,5 +1,7 @@
 FROM node:16-alpine
 
+LABEL maintainer="bakduo"
+
 # Set to a non-root built-in user `node`
 USER node
 
