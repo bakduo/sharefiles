@@ -11,6 +11,7 @@ import { upload } from '../services/upload';
 import { protectionMiddleware } from '../middleware/csrf';
 
 import { MLinkUser } from '../dao/mongo/link-user';
+import { encriptFiles } from '../middleware/encrypt';
 
 const daoLink = new MLinkUser();
 
@@ -28,7 +29,7 @@ routerArchivo.get('/',protectionMiddleware,(req:Request,res:Response)=>{
 
 //routerArchivo.post('/uploadfiles', [upload.array('archivosuser', 4)],controller.saveMulti);
 
-routerArchivo.post('/uploadfilescheck',[protectionMiddleware,upload.array('archivosuser', 4),checkFiles],controller.saveMultiControl);
+routerArchivo.post('/uploadfilescheck',[protectionMiddleware,upload.array('archivosuser', 4),checkFiles,encriptFiles],controller.saveMultiControl);
 
 routerArchivo.get('/:id',[protectionMiddleware],controller.getFile);
 

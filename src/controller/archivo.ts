@@ -6,9 +6,11 @@ import { v4 as uuid } from 'uuid';
 import { LinkUser } from '../dao/links';
 import { IGenericDB } from '../datasources/storage/generic';
 import { LinkUserDTO } from '../dto/link-user';
-import { CipherEasy, IHashCiper } from '../services/cipher';
+import { CipherEasy, IHashCiper, CipherFile } from '../services/cipher';
 import { unlinkSync } from 'fs';
 import { appconfig, loggerApp } from '../initconfig/configure';
+import * as fs from 'fs';
+
 
 export interface CustomRequest extends Request {
     finalFile?: string,
@@ -71,17 +73,56 @@ export class ArchivoController {
           if (deadline){
             if (deadline===Number(tokenDecrypt)){
 
-              return res.status(200).sendFile(fileObj.pathfile, {
-                root: '.'
-            }, function (err) {
-                if (err) {
-                    loggerApp.error(`Exception Sent: ${fileObj.pathfile} ${err.message}`);
-                    next(err);
-                } else {
-                    loggerApp.info(`Sent: ${fileObj.pathfile}`);
-                    next();
-                }
+              //DEC:
+
+              const dencryptFile = new CipherFile({
+                algorithm:appconfig.encrypt.algorithm,
+                secretKey:appconfig.encrypt.secretKey
+              });
+
+              const numberToday = Date.now();
+              const readableStreamEventDec = fs.createReadStream(fileObj.pathfile);
+
+              const writableStreamEventDnc = fs.createWriteStream(`/tmp/orig.${numberToday}`);
+    
+              readableStreamEventDec.on('data', function (chunkBuffer:Buffer) { // Could be called multiple times
+
+                  console.log('Dec got chunk of', chunkBuffer.length, 'bytes');
+                  writableStreamEventDnc.write(Buffer.from(dencryptFile.decrypt(chunkBuffer)));
+              });
+
+              readableStreamEventDec.on('end', function() {
+                  // Called after all chunks read
+
+                  console.log('got all the data DEC');
+
+                  writableStreamEventDnc.end();
+
+                  return res.status(200).sendFile(`orig.${numberToday}`, {
+                    root: '/tmp/'
+                  }, function (err) {
+                      if (err) {
+                          loggerApp.error(`Exception Sent: ${fileObj.pathfile} ${err.message}`);
+                          next(err);
+                      } else {
+                          loggerApp.info(`Sent: ${fileObj.pathfile}`);
+                          unlinkSync(`/tmp/orig.${numberToday}`);
+                          next();
+                      }
+                  });
+              });
+  
+              readableStreamEventDec.on('error', function (err) {
+                  console.error('Read got error', err);
+                  return res.status(200).json({message:'Error to Read file'});
+              });
+
+              writableStreamEventDnc.on('error', function (err) {
+                console.error('Write got error', err);
+                return res.status(200).json({message:'Error to Write file'});
             });
+
+            
             }
           } 
         }
@@ -139,7 +180,7 @@ export class ArchivoController {
                   deadline:finalDate,
                   deleted:false,
                   ephemeral:false,
-                  pathfile:appconfig.rootpathfile+item.name
+                  pathfile:appconfig.rootpathfile+item.name+".enc"
                 });
     
                 if (itemSave){

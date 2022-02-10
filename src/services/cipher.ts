@@ -14,7 +14,54 @@ export interface IHashCiper {
     content:string;
 }
 
-export class CipherEasy {
+interface ICipherEnc <T> {
+
+    encrypt(text:string):T;
+    decrypt(hash:T):string;
+
+}
+
+export class CipherFile implements ICipherEnc<Buffer> {
+
+    algorithm:string;
+    secretKey:string;
+    iv:Buffer;
+
+    constructor(config:ICipher){
+        this.algorithm = config.algorithm;
+        this.secretKey = config.secretKey;
+        this.iv = crypto.randomBytes(16);
+    }
+
+    encrypt = (text:string):Buffer => {
+
+
+        try {
+            const cipher = crypto.createCipheriv(this.algorithm, Buffer.from(this.secretKey), this.iv);
+
+            return Buffer.concat([cipher.update(text), cipher.final()]);
+
+        } catch (error:unknown) {
+            const err = error as MyType;
+            loggerApp.error(`Exception on ecncript token function encrypt: ${err.message}`);            
+            throw new Error(`Exception on encrypt into token`);
+        }
+
+    };
+    
+    decrypt = (hash:Buffer):string => {
+    
+        const decipher = crypto.createDecipheriv(this.algorithm, Buffer.from(this.secretKey), this.iv);
+    
+        const decrpyted = Buffer.concat([decipher.update(hash), decipher.final()]);
+    
+        return decrpyted.toString();
+    };
+    
+}
+
+
+export class CipherEasy implements ICipherEnc<IHashCiper> {
 
     algorithm:string;
     secretKey:string;
