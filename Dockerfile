@@ -30,4 +30,4 @@ VOLUME [ "config/","uploads/","log/"]
 
 EXPOSE ${PORT}
 
-CMD [ "npm", "run", "start:prod" ]
+CMD [ "npm", "run", "start:pm2docker" ]

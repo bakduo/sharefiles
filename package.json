@@ -7,6 +7,8 @@
     "dev": "cross-env NODE_ENV='development' nodemon -i uploads bin/run.ts",
     "build": "rm -rf dist/ && tsc",
     "start:prod": "NODE_ENV='production' node dist/bin/run.js",
+    "start:pm2docker": "cross-env NODE_ENV='production' pm2-runtime dist/bin/run.js --env production --watch",
+    "start:pm2": "cross-env NODE_ENV='production' pm2 start dist/bin/run.js --name='sharedlinks' --watch --",
     "test": "cross-env NODE_ENV='development' env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register _test_/*.ts --reporter mochawesome --timeout 15000 --exit"
   },
   "repository": {
@@ -44,6 +46,7 @@
     "pino": "^7.6.5",
     "pino-multi-stream": "^6.0.0",
     "pino-tee": "^0.3.0",
+    "pm2": "^5.1.2",
     "redis": "^4.0.3",
     "uuid": "^8.3.2"
   },
