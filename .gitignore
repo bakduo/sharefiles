@@ -163,3 +163,5 @@ uploads/
 config/
 mochawesome-report/
 deploy-memcached.yml
+deploy-sharefiles.yml
+nginx/
