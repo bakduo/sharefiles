@@ -1,4 +1,4 @@
-FROM node:16-slim
+FROM node:16-alpine
 
 # Set to a non-root built-in user `node`
 USER node
