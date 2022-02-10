@@ -3,9 +3,9 @@ import { LinkUser } from '../links';
 
 import { Model } from 'mongoose';
 import { SchemaLinkUser } from "../../schemas/link-user";
-import { loggerApp, connectionDB } from '../../config/configure';
 import { LinkUserDTO } from '../../dto/link-user';
 import { MyType } from "../../controller/archivo";
+import { connectionDB, loggerApp } from "../../initconfig/configure";
 
 
 //Valid for patch object:any = {}

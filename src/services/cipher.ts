@@ -1,8 +1,6 @@
-
-
 import * as crypto from "crypto";
-import { loggerApp } from "../config/configure";
 import { MyType } from "../controller/archivo";
+import { loggerApp } from "../initconfig/configure";
 
 //based https://github.com/attacomsian/code-examples/tree/master/nodejs/crypto
 

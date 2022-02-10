@@ -6,9 +6,9 @@ import { v4 as uuid } from 'uuid';
 import { LinkUser } from '../dao/links';
 import { IGenericDB } from '../datasources/storage/generic';
 import { LinkUserDTO } from '../dto/link-user';
-import { appconfig, loggerApp } from '../config/configure';
 import { CipherEasy, IHashCiper } from '../services/cipher';
 import { unlinkSync } from 'fs';
+import { appconfig, loggerApp } from '../initconfig/configure';
 
 export interface CustomRequest extends Request {
     finalFile?: string,

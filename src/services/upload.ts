@@ -7,7 +7,7 @@ import multer, { FileFilterCallback } from 'multer';
 import { mkdirSync} from 'fs';
 
 import { CustomRequest, MyType } from '../controller/archivo';
-import { appconfig, loggerApp } from '../config/configure';
+import { appconfig, loggerApp } from '../initconfig/configure';
 
 const MimeAvailable:string[] = ['image/png','image/jpg','image/jpeg','text/plain','application/pdf','text/x-shellscript','application/zip'];
 

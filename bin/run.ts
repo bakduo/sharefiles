@@ -1,5 +1,5 @@
+import { appconfig } from "../src/initconfig/configure";
 import { app } from "../src/main";
-import { appconfig } from '../src/config/configure';
 
 const puerto = appconfig.port || 8080;
 

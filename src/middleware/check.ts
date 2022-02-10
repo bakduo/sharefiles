@@ -2,8 +2,8 @@ import {Response, NextFunction} from 'express';
 import { readSync,unlinkSync, openSync, closeSync} from 'fs';
 import imageType from 'image-type';
 import { CustomRequest } from '../controller/archivo';
+import { appconfig } from '../initconfig/configure';
 import { ICollector, ItemFile } from '../services/upload';
-import { appconfig } from '../config/configure';
 
 interface ErrorMiddleware extends TypeError {
     code?:string;
