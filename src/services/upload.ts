@@ -1,4 +1,3 @@
-import { loggerApp } from './../config/configure';
 import {Request} from 'express';
 
 import { v4 as uuid } from 'uuid';
@@ -8,7 +7,7 @@ import multer, { FileFilterCallback } from 'multer';
 import { mkdirSync} from 'fs';
 
 import { CustomRequest, MyType } from '../controller/archivo';
-import { appconfig } from '../config/configure';
+import { appconfig, loggerApp } from '../config/configure';
 
 const MimeAvailable:string[] = ['image/png','image/jpg','image/jpeg','text/plain','application/pdf','text/x-shellscript','application/zip'];
 
