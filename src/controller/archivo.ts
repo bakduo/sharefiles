@@ -28,13 +28,6 @@ export interface MyType extends Error {
   httpStatusCode?: number,
 }
 
-export interface FileTypeCustom {
-  fieldname?: string,
-  originalname?: string,
-  encoding?: string,
-  mimetype?: string,
-}
-
 export const CODE_UPLOAD_MULTER=1;
 
 export const CODE_UPLOAD_DEFAULT=2;
