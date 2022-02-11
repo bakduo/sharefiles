@@ -7,7 +7,7 @@
     "dev": "cross-env NODE_ENV='development' nodemon -i ./uploads bin/run.ts",
     "build": "rm -rf dist/ && tsc",
     "start:prod": "NODE_ENV='production' node dist/bin/run.js",
-    "start:pm2docker": "cross-env NODE_ENV='production' pm2-runtime dist/bin/run.js --env production --watch",
+    "start:pm2docker": "cross-env NODE_ENV='production' pm2-runtime dist/bin/run.js --env production",
     "start:pm2": "cross-env NODE_ENV='production' pm2 start dist/bin/run.js --name='sharedlinks' --watch --",
     "test": "cross-env NODE_ENV='development' mocha -r ts-node/register --watch-extensions ts --colors _test_/*.ts --reporter mochawesome --timeout 15000 --exit"
   },
