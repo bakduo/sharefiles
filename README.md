@@ -9,4 +9,4 @@ Sharefiles by ephemeral user.
 - [X] sharelinks by token.
 - [X] secure CSRF
 - [X] EJS.
-- [X] Container. In Progress
+- [X] Container. support PM2 and normal exec.
