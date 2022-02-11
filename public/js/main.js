@@ -29,9 +29,7 @@ let MSend = (function(){
                 .then((response)=>{
 
                     if (response.ok){
-                        link.innerHTML = "Procesando...";
                         return response.json();
-                        
                     }else{
 
                         throw new Error(`Network response was not OK`);
