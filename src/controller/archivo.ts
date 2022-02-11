@@ -4,14 +4,18 @@ import * as express from 'express';
 import * as stream from 'stream';
 import * as util from 'util';
 const finished = util.promisify(stream.finished);
-import { v4 as uuid } from 'uuid';
 import { unlinkSync } from 'fs';
 import * as fs from 'fs';
 import { IGenericDB } from '../datasources';
 import { LinkUser } from '../dao';
 import { LinkUserDTO } from '../dto/link-user';
 import { tokenEnc, appconfig, encryptFile, loggerApp } from '../initconfig';
-import { EncodeFileStreamCipher, ICollector, IHashCiper } from '../services';
+import { EncodeFileStreamCipher, ICollector } from '../services';
+
+export interface IBodyResponseLink {
+  name?:string;
+  link?:string;
+}
 
 export interface ErrorMiddleware extends TypeError {
   code?:string;
@@ -21,7 +25,8 @@ export type errorType = ErrorMiddleware;
 
 export interface CustomRequest extends express.Request {
   finalFile?: string,
-  listFiles?: ICollector
+  listFiles?: ICollector,
+  linksLoad?: IBodyResponseLink[]
 }
 
 export interface MyType extends Error {
@@ -117,77 +122,29 @@ export class ArchivoController {
 
         const files = req.files;
 
-        const collection:ICollector = req.listFiles as ICollector;
-
-        const archivos = collection.getAll();
-
+        const linksFiles = req.linksLoad;
+        
         if (!files) {
       
           return res.status(500).json({status:false,message:'Error procesar archivo'});
         }
      
-        const resultado:object[] = [];
-
         try {
-  
-          for (const item of archivos) {
 
-            const idFile = uuid();
-            //Hasta 4 dias
-            const finalDate = new Date((Date.now() + 400000000)).getTime();
-
-            let hash:IHashCiper; 
-            try {
-              hash = tokenEnc.encrypt(finalDate.toString());
-            } catch (error:unknown) {
-              const err = error as MyType;
-
-              loggerApp.error(`Exception on encrypt.encrypt: ${err.message}`);
-
-              throw new Error(`Exception on IHashCiper into file`);
-            }
-
-            const url = `${appconfig.protocol}://${appconfig.hostname}/${idFile}?token=${hash.iv}&content=${hash.content}`;
-  
-            try {
-  
-              const itemSave = await this.dmodel.saveOne({
-                  url:`${url}`,
-                  uuid: idFile,
-                  deadline:finalDate,
-                  deleted:false,
-                  ephemeral:false,
-                  origname:item.name,
-                  pathfile:appconfig.rootpathfile+item.name+".enc"
-                });
-    
-                if (itemSave){
-                  resultado.push({link:url,name:item.orig});
-                  unlinkSync(appconfig.rootpathfile+item.name);
-                }
-                  
-              } catch (error:unknown) {
-              
-                const err = error as MyType;
-
-                unlinkSync(appconfig.rootpathfile+item.name+".enc");
-
-                loggerApp.error(`Exception on this.dmodel.saveOne into MongoDB ${err.message}`);
-  
-                throw new Error(`Exception on this.dmodel.saveOne into MongoDB`);
-              }
-            }
-  
-            return res.status(200).json({files:resultado,status:true,message:'OK'});
-  
-          }catch(error:unknown) {
-
-            const err = error as MyType
-
-            loggerApp.error(`Exception on SaveLink into MongoDB ${err.message}`);
-
-            return res.status(500).json({files:null,status:false,message:err.message});
+          if (linksFiles){
+            return res.status(200).json({files:linksFiles,status:true,message:'OK files'});
           }
+
+          return res.status(404).json({files:linksFiles,status:false,message:`Not files exists`});
+          
+        } catch (error:unknown) {
+
+           const err = error as MyType;
+
+          loggerApp.error(`Exception on response files finished ${err.message}`);
+
+          throw new Error(`Exception on response files finished ${err.message}`);
+        }
   
     }
 

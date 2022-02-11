@@ -33,7 +33,7 @@ export class MLinkUser implements IGenericDB<LinkUser|LinkUserDTO> {
         return "mongo";
     }
 
-    async findOne (custom: IsearchItem):Promise<LinkUser> {
+    async findOne (custom: IsearchItem):Promise<LinkUserDTO> {
 
         const {keycustom, valuecustom} = custom;
 
@@ -43,7 +43,9 @@ export class MLinkUser implements IGenericDB<LinkUser|LinkUserDTO> {
 
         const item = await this.model.findOne(queryObj);
         if (item){
-            return item
+            const {url,deadline,deleted,_id,pathfile,uuid,ephemeral,origname} = item;
+
+            return {url,deadline,deleted,_id,pathfile,uuid,ephemeral,origname};
         }
 
         throw new Error(`Exception on findOne into MongoDB`);
@@ -70,7 +72,7 @@ export class MLinkUser implements IGenericDB<LinkUser|LinkUserDTO> {
 
     }
 
-    async saveOne(item: LinkUserDTO): Promise<LinkUser | LinkUserDTO>{
+    async saveOne(item: LinkUserDTO): Promise<LinkUserDTO>{
 
             try {
 
@@ -98,24 +100,30 @@ export class MLinkUser implements IGenericDB<LinkUser|LinkUserDTO> {
             }
     }
 
-    async getAll(): Promise<LinkUser[]> {
+    async getAll(): Promise<LinkUserDTO[]> {
         
         const allItems = await this.model.find();
         if (allItems){
-            return allItems
+            return allItems.map((item)=> {
+                const {url,deadline,deleted,_id,pathfile,uuid,ephemeral,origname} = item;
+
+                return {url,deadline,deleted,_id,pathfile,uuid,ephemeral,origname};
+            });
         }
 
         throw new Error(`Exception on getAll into MongoDB`);
 
     }
 
-    async updateOne(id: string, item: LinkUser): Promise<LinkUser> {
+    async updateOne(id: string, item: LinkUser): Promise<LinkUserDTO> {
 
 
             const updateItem = await this.model.findOneAndUpdate({_id:id},item);
             
             if (updateItem){
-                return updateItem;
+                const {url,deadline,deleted,_id,pathfile,uuid,ephemeral,origname} = updateItem;
+
+                return {url,deadline,deleted,_id,pathfile,uuid,ephemeral,origname};
             }
 
             throw new Error(`Exception on updateOne into MongoDB`);
