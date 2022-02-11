@@ -27,11 +27,9 @@ export const checkFiles = async (req:CustomRequest,res:express.Response,next:exp
 
     const collection:ICollector = req.listFiles as ICollector;
 
-    const archivos = collection.getAll();
-
     let breakFail = true;
 
-    const checkAll = archivos.every((item:ItemFile)=>{
+    const checkAll = collection.getAll().every((item:ItemFile)=>{
         const file = appconfig.rootpathfile + item.name;
         const buff = Buffer.alloc(12);
         const fd = openSync(file, 'r');

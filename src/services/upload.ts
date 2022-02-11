@@ -87,7 +87,6 @@ const storage = multer.diskStorage({
   fileFilter : (req:Request, file:Express.Multer.File, cb:FileFilterCallback) => {
       loggerApp.debug(`Agregando file ${file.mimetype}`);
       if (MimeAvailable.includes(file.mimetype)){
-      //if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
         cb(null, true);
       } else {
         cb(null, false);
