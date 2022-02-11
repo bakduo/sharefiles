@@ -8,6 +8,11 @@ export const SchemaLinkUser = new Schema<LinkUser>({
         required: true,
         default: '',
       },
+    origname: {
+        type: String,
+        required: true,
+        default: '',
+    },
     uuid: {
         type: String,
         required: true,

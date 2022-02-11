@@ -1,6 +1,6 @@
 import { connect, Connection, createConnection } from 'mongoose';
 
-export class MongoConnect {
+export default class MongoConnect {
 
     private url:string;
 

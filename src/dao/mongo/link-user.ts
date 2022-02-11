@@ -83,9 +83,9 @@ export class MLinkUser implements IGenericDB<LinkUser|LinkUserDTO> {
 
                 if (newItem){
                    
-                   const {url,deadline,deleted,_id,pathfile,uuid,ephemeral} = newItem;
+                   const {url,deadline,deleted,_id,pathfile,uuid,ephemeral,origname} = newItem;
 
-                   return {url,deadline,deleted,_id,pathfile,uuid,ephemeral};
+                   return {url,deadline,deleted,_id,pathfile,uuid,ephemeral,origname};
 
                 }    
                 

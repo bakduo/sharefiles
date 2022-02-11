@@ -1,6 +1,8 @@
 import * as crypto from "crypto";
-import { MyType } from "../controller/archivo";
 import { loggerApp } from "../initconfig/configure";
+import { Writable } from 'stream';
+import { writeFile } from "fs/promises";
+import { MyType } from "../controller";
 
 //based https://github.com/attacomsian/code-examples/tree/master/nodejs/crypto
 
@@ -14,11 +16,35 @@ export interface IHashCiper {
     content:string;
 }
 
-interface ICipherEnc <T> {
+export interface ICipherEnc <T> {
+    encrypt(block:T):T;
+    decrypt(block:T):T;
+}
 
-    encrypt(text:string):T;
-    decrypt(hash:T):string;
+export class EncodeFileStreamCipher extends Writable {
+    path: string;
+    encfile:ICipherEnc<Buffer>;
+    encoding:boolean;
+   
+    constructor(path: string,enc:ICipherEnc<Buffer>,type:boolean) {
+      super();
+      this.path = path;
+      this.encfile = enc;
+      this.encoding = type;
+    }
+   
+    _write(chunk: any, encoding: string, next: (error?: Error) => void) {
 
+        if (this.encoding){
+            writeFile(this.path, this.encfile.encrypt(chunk))
+        .then(() => next())
+        .catch((error) => next(error));
+        }else{
+            writeFile(this.path, this.encfile.decrypt(chunk))
+        .then(() => next())
+        .catch((error) => next(error));
+        }
+    }
 }
 
 export class CipherFile implements ICipherEnc<Buffer> {
@@ -33,35 +59,33 @@ export class CipherFile implements ICipherEnc<Buffer> {
         this.iv = crypto.randomBytes(16);
     }
 
-    encrypt = (text:string):Buffer => {
-
+    encrypt = (block:Buffer):Buffer => {
 
         try {
             const cipher = crypto.createCipheriv(this.algorithm, Buffer.from(this.secretKey), this.iv);
-
-            return Buffer.concat([cipher.update(text), cipher.final()]);
-
+            return Buffer.concat([this.iv,cipher.update(block), cipher.final()]);
         } catch (error:unknown) {
             const err = error as MyType;
             loggerApp.error(`Exception on ecncript token function encrypt: ${err.message}`);            
             throw new Error(`Exception on encrypt into token`);
         }
-
     };
     
-    decrypt = (hash:Buffer):string => {
+    decrypt = (block:Buffer):Buffer => {
+
+        const iv = block.slice(0, 16);
+
+        block = block.slice(16);
     
-        const decipher = crypto.createDecipheriv(this.algorithm, Buffer.from(this.secretKey), this.iv);
+        const decipher = crypto.createDecipheriv(this.algorithm, Buffer.from(this.secretKey), iv);
     
-        const decrpyted = Buffer.concat([decipher.update(hash), decipher.final()]);
-    
-        return decrpyted.toString();
+        return Buffer.concat([decipher.update(block), decipher.final()]);
+
     };
     
 }
 
-
-export class CipherEasy implements ICipherEnc<IHashCiper> {
+export class CipherEasy implements ICipherEnc<IHashCiper | string> {
 
     algorithm:string;
     secretKey:string;
@@ -71,16 +95,15 @@ export class CipherEasy implements ICipherEnc<IHashCiper> {
         this.algorithm = config.algorithm;
         this.secretKey = config.secretKey;
         this.iv = crypto.randomBytes(16);
-        //crypto.randomBytes(24);
     }
 
-    encrypt = (text:string):IHashCiper => {
+    encrypt = (block:string):IHashCiper => {
 
 
         try {
             const cipher = crypto.createCipheriv(this.algorithm, Buffer.from(this.secretKey), this.iv);
     
-            const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
+            const encrypted = Buffer.concat([cipher.update(block), cipher.final()]);
 
             return {
                 iv: this.iv.toString('hex'),//tener en cuenta que debe ser HEX sino crypto.randomBytes(24).toString('hex')
@@ -95,11 +118,11 @@ export class CipherEasy implements ICipherEnc<IHashCiper> {
 
     };
     
-    decrypt = (hash:IHashCiper):string => {
+    decrypt = (block:IHashCiper):string => {
     
-        const decipher = crypto.createDecipheriv(this.algorithm, Buffer.from(this.secretKey), Buffer.from(hash.iv, 'hex'));
+        const decipher = crypto.createDecipheriv(this.algorithm, Buffer.from(this.secretKey), Buffer.from(block.iv, 'hex'));
     
-        const decrpyted = Buffer.concat([decipher.update(Buffer.from(hash.content, 'hex')), decipher.final()]);
+        const decrpyted = Buffer.concat([decipher.update(Buffer.from(block.content, 'hex')), decipher.final()]);
     
         return decrpyted.toString();
     };

@@ -6,8 +6,9 @@ import multer, { FileFilterCallback } from 'multer';
 
 import { mkdirSync} from 'fs';
 
-import { CustomRequest, MyType } from '../controller/archivo';
-import { appconfig, loggerApp } from '../initconfig/configure';
+import { appconfig, loggerApp} from '../initconfig/configure';
+
+import { CustomRequest, MyType } from '../controller';
 
 const MimeAvailable:string[] = ['image/png','image/jpg','image/jpeg','text/plain','application/pdf','text/x-shellscript','application/zip'];
 
@@ -23,7 +24,7 @@ export interface ItemFile {
   name:string;
 }
 
-class CollectorFiles implements ICollector{
+export class CollectorFiles implements ICollector{
   
   private files:ItemFile[];
 
@@ -44,7 +45,7 @@ class CollectorFiles implements ICollector{
   }
 }
 
-export const tmpFiles = new CollectorFiles();
+const tmpFiles = new CollectorFiles();
 
 //https://stackoverflow.com/questions/59097119/using-multer-diskstorage-with-typescript
 

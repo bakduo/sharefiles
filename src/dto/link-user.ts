@@ -7,6 +7,7 @@ export interface LinkUserDTO {
     deadline:number;
     ephemeral:boolean;
     pathfile:string;
+    origname:string;
     deleted:boolean;
     _id?:string;
 }

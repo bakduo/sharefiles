@@ -1,21 +1,20 @@
-
-import {Response, NextFunction} from 'express';
-import { CustomRequest } from "../controller/archivo";
-import { appconfig } from "../initconfig/configure";
-import { CipherFile } from "../services/cipher";
+import { CustomRequest } from '../controller';
+import * as express from 'express';
+import { appconfig, encryptFile, loggerApp } from "../initconfig/configure";
+import { EncodeFileStreamCipher } from '../services/cipher';
 import { ICollector, ItemFile } from "../services/upload";
 import * as fs from 'fs';
+import * as stream from 'stream';
+import * as util from 'util';
 
-export function encriptFiles(req:CustomRequest,res:Response,next:NextFunction){
+
+const finished = util.promisify(stream.finished);
+
+export const encriptFiles = async (req:CustomRequest,res:express.Response,next:express.NextFunction):Promise<express.Response | void> => {
 
     const collection:ICollector = req.listFiles as ICollector;
 
     const archivos = collection.getAll();
-
-    const encrypt = new CipherFile({
-        algorithm:appconfig.encrypt.algorithm,
-        secretKey:appconfig.encrypt.secretKey
-      });
 
     archivos.forEach((item:ItemFile)=>{
 
@@ -25,25 +24,33 @@ export function encriptFiles(req:CustomRequest,res:Response,next:NextFunction){
         
         const readableStreamEvent = fs.createReadStream(file);
 
-        const writableStreamEventEnc = fs.createWriteStream(encfile);
+        const writableStreamEventEnc = new EncodeFileStreamCipher(encfile,encryptFile,true);
 
-        readableStreamEvent.on('data', function (chunkBuffer:Buffer) {
-            const buffer = encrypt.encrypt(Buffer.from(chunkBuffer).toString());
-            writableStreamEventEnc.write(buffer);
-        });
+        finished(stream.pipeline(
 
-        readableStreamEvent.on('end', function(){
-            writableStreamEventEnc.end();
-        });
+            readableStreamEvent,
+
+            writableStreamEventEnc,
+
+        (err) => {
+            if (err) {
+            loggerApp.error('Pipeline into middleware failed', err);
+            } else {
+            loggerApp.debug('Pipeline into middleware succeeded');
+            }
+        }
+        ));
 
     })
 
     Promise.all(archivos)
     .then(()=>{
-        next();
+        return next();
     })
     .catch((error)=>{
         return res.status(400).json({message:error.message,status:false});
     });
+
+    return res.status(400).json({message:'sample',status:false});
     
 }

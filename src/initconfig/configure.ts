@@ -1,10 +1,10 @@
-import { MongoConnect } from './../datasources/storage/mongo';
 import config from 'config';
 import pino from "pino";
 import stream from 'stream';
 import { IConfigDB } from '../datasources/storage/config';
-
 import childProcess from 'child_process';
+import { CipherEasy, CipherFile } from '../services/cipher';
+import MongoConnect from '../datasources/storage/mongo';
 
 export const appconfig:IConfigDB = config.get('app');
 
@@ -46,4 +46,14 @@ export const connectionDB = MongoConnect.getInstance(
   appconfig.db.mongo.user,
   appconfig.db.mongo.pass,
   appconfig.db.mongo.dbname).getConnection();
+
+export const encryptFile = new CipherFile({
+  algorithm:appconfig.encrypt.algorithm,
+  secretKey:appconfig.encrypt.secretKey
+});
+
+export const tokenEnc = new CipherEasy({
+  algorithm:appconfig.encrypt.algorithm,
+  secretKey:appconfig.encrypt.secretKey
+});
 

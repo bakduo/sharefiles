@@ -1,9 +1,9 @@
 import csurf from 'csurf';
-import { Request,Response,NextFunction } from 'express';
+import * as express from 'express';
 
 export const protectionMiddleware = csurf({cookie: { key: "__session", httpOnly: true }});
 
-export  const checkToken = async (req:Request,res:Response,next:NextFunction) => {
+export function checkToken(req:express.Request,res:express.Response,next:express.NextFunction){
 
     const token = req.cookies['__session'];
     

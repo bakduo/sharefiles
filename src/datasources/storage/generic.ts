@@ -20,4 +20,3 @@ export interface IGenericDB<T> {
     deleteAll():Promise<void>;
 
 }
-  

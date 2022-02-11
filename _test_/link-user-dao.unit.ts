@@ -1,5 +1,5 @@
+import { MLinkUser } from './../src/dao/mongo/link-user';
 import { expect } from "chai";
-import { MLinkUser } from "../src/dao/mongo/link-user";
 import { v4 as uuid } from 'uuid';
 
 const daoLink = new MLinkUser();
@@ -31,8 +31,9 @@ describe('Test MLinkUser DAO UNIT',() => {
                 uuid:uuid(),
                 ephemeral: true,
                 deadline:finalDate,
+                origname:'origname',
                 deleted:false,
-                pathfile:'uploads/'
+                pathfile:'sampleuploads/'
               });
 
             expect(Oksave).to.be.a('object');

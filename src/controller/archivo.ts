@@ -1,31 +1,38 @@
-import {Request, Response, NextFunction} from 'express';
+//import {Request, Response, NextFunction} from 'express';
+import * as express from 'express';
 
-import { ICollector, ItemFile } from '../services/upload';
-
+import * as stream from 'stream';
+import * as util from 'util';
+const finished = util.promisify(stream.finished);
 import { v4 as uuid } from 'uuid';
-import { LinkUser } from '../dao/links';
-import { IGenericDB } from '../datasources/storage/generic';
-import { LinkUserDTO } from '../dto/link-user';
-import { CipherEasy, IHashCiper, CipherFile } from '../services/cipher';
 import { unlinkSync } from 'fs';
-import { appconfig, loggerApp } from '../initconfig/configure';
 import * as fs from 'fs';
+import { IGenericDB } from '../datasources';
+import { LinkUser } from '../dao';
+import { LinkUserDTO } from '../dto/link-user';
+import { tokenEnc, appconfig, encryptFile, loggerApp } from '../initconfig';
+import { EncodeFileStreamCipher, ICollector, IHashCiper } from '../services';
 
+export interface ErrorMiddleware extends TypeError {
+  code?:string;
+}
 
-export interface CustomRequest extends Request {
-    finalFile?: string,
-    listFiles?: ICollector,
+export type errorType = ErrorMiddleware;
+
+export interface CustomRequest extends express.Request {
+  finalFile?: string,
+  listFiles?: ICollector
 }
 
 export interface MyType extends Error {
-    httpStatusCode?: number,
+  httpStatusCode?: number,
 }
 
 export interface FileTypeCustom {
-    fieldname?: string,
-    originalname?: string,
-    encoding?: string,
-    mimetype?: string,
+  fieldname?: string,
+  originalname?: string,
+  encoding?: string,
+  mimetype?: string,
 }
 
 export const CODE_UPLOAD_MULTER=1;
@@ -46,7 +53,7 @@ export class ArchivoController {
       //this.saveMultiControl = this.saveMultiControl.bind(this);
     }
 
-    getFile = async (req:CustomRequest, res:Response,next:NextFunction):Promise<Response | void> => {
+    getFile = async (req:express.Request, res:express.Response,next:express.NextFunction):Promise<express.Response | void> => {
       
       const {id} = req.params;
 
@@ -54,12 +61,7 @@ export class ArchivoController {
 
       if (id && token && content){
 
-        const encrypt = new CipherEasy({
-          algorithm:appconfig.encrypt.algorithm,
-          secretKey:appconfig.encrypt.secretKey
-        });
-
-        const tokenDecrypt = encrypt.decrypt({
+        const tokenDecrypt = tokenEnc.decrypt({
           'iv':token.toString(),
           'content':content.toString()
         });
@@ -74,55 +76,42 @@ export class ArchivoController {
             if (deadline===Number(tokenDecrypt)){
 
               //DEC:
-
-              const dencryptFile = new CipherFile({
-                algorithm:appconfig.encrypt.algorithm,
-                secretKey:appconfig.encrypt.secretKey
-              });
-
-              const numberToday = Date.now();
               const readableStreamEventDec = fs.createReadStream(fileObj.pathfile);
 
-              const writableStreamEventDnc = fs.createWriteStream(`/tmp/orig.${numberToday}`);
-    
-              readableStreamEventDec.on('data', function (chunkBuffer:Buffer) { // Could be called multiple times
+              const writableStreamEventDnc = new EncodeFileStreamCipher(appconfig.rootpathfile + fileObj.origname,encryptFile,false);
 
-                  console.log('Dec got chunk of', chunkBuffer.length, 'bytes');
-                  writableStreamEventDnc.write(Buffer.from(dencryptFile.decrypt(chunkBuffer)));
+              //Pipiline is safe.. while use pipe() not secure
+
+              await finished(stream.pipeline(
+
+                readableStreamEventDec,
+
+                writableStreamEventDnc,
+
+                (err) => {
+                  if (err) {
+                    loggerApp.error('Pipeline failed', err);
+                  } else {
+                    loggerApp.debug('Pipeline succeeded');
+                  }
+                }
+              ));
+
+              loggerApp.debug('got all the data DEC');
+
+              loggerApp.debug(`${appconfig.rootpathfile} + ${fileObj.origname}`);
+
+              return res.status(200).sendFile(`${appconfig.rootpathfile}${fileObj.origname}`, {
+                root: '.'
+              }, function (err) {
+                  if (err) {
+                      loggerApp.error(`Exception Sent: ${fileObj.origname}: ${err.message}`);
+                      next(err);
+                  } else {
+                      loggerApp.info(`Sent: ${fileObj.origname}`);
+                      unlinkSync(appconfig.rootpathfile + fileObj.origname);
+                  }
               });
-
-              readableStreamEventDec.on('end', function() {
-                  // Called after all chunks read
-
-                  console.log('got all the data DEC');
-
-                  writableStreamEventDnc.end();
-
-                  return res.status(200).sendFile(`orig.${numberToday}`, {
-                    root: '/tmp/'
-                  }, function (err) {
-                      if (err) {
-                          loggerApp.error(`Exception Sent: ${fileObj.pathfile} ${err.message}`);
-                          next(err);
-                      } else {
-                          loggerApp.info(`Sent: ${fileObj.pathfile}`);
-                          unlinkSync(`/tmp/orig.${numberToday}`);
-                          next();
-                      }
-                  });
-              });
-  
-              readableStreamEventDec.on('error', function (err) {
-                  console.error('Read got error', err);
-                  return res.status(200).json({message:'Error to Read file'});
-              });
-
-              writableStreamEventDnc.on('error', function (err) {
-                console.error('Write got error', err);
-                return res.status(200).json({message:'Error to Write file'});
-            });
-
-            
             }
           } 
         }
@@ -131,7 +120,7 @@ export class ArchivoController {
     }
 
     //I prefeer arrow function.
-    saveMultiControl = async (req:CustomRequest, res:Response):Promise<Response> => {
+    saveMultiControl = async (req:CustomRequest, res:express.Response):Promise<express.Response> => {
 
         const files = req.files;
 
@@ -154,14 +143,9 @@ export class ArchivoController {
             //Hasta 4 dias
             const finalDate = new Date((Date.now() + 400000000)).getTime();
 
-            const encrypt = new CipherEasy({
-              algorithm:appconfig.encrypt.algorithm,
-              secretKey:appconfig.encrypt.secretKey
-            });
-
             let hash:IHashCiper; 
             try {
-              hash = encrypt.encrypt(finalDate.toString());
+              hash = tokenEnc.encrypt(finalDate.toString());
             } catch (error:unknown) {
               const err = error as MyType;
 
@@ -180,18 +164,20 @@ export class ArchivoController {
                   deadline:finalDate,
                   deleted:false,
                   ephemeral:false,
+                  origname:item.name,
                   pathfile:appconfig.rootpathfile+item.name+".enc"
                 });
     
                 if (itemSave){
                   resultado.push({link:url,name:item.orig});
+                  unlinkSync(appconfig.rootpathfile+item.name);
                 }
                   
               } catch (error:unknown) {
               
                 const err = error as MyType;
 
-                unlinkSync(appconfig.rootpathfile+item.name);
+                unlinkSync(appconfig.rootpathfile+item.name+".enc");
 
                 loggerApp.error(`Exception on this.dmodel.saveOne into MongoDB ${err.message}`);
   
@@ -212,7 +198,7 @@ export class ArchivoController {
   
     }
 
-    saveOne(req:Request, res:Response, next:NextFunction):Response{
+    saveOne(req:express.Request, res:express.Response):express.Response{
         try{
 
             const file = req.file as Express.Multer.File;
@@ -231,7 +217,7 @@ export class ArchivoController {
       }
     }
 
-    saveMulti(req:Request, res:Response, next:NextFunction):Response{
+    saveMulti(req:express.Request, res:express.Response):express.Response{
 
         const files = req.files;
     

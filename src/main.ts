@@ -3,10 +3,10 @@ import express from 'express';
 import {Request, Response, NextFunction} from 'express';
 
 import session from 'express-session';
-import { errorType } from './middleware/check';
 import { routerGlobal } from './routes/index';
 import ConnectMemcached = require('connect-memcached');
 import { appconfig } from './initconfig/configure';
+import { errorType } from './controller';
 
 const MemcachedStore = ConnectMemcached(session);
 
