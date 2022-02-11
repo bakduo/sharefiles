@@ -10,3 +10,4 @@ Sharefiles by ephemeral user.
 - [X] secure CSRF
 - [X] EJS.
 - [X] Container. support PM2 and normal exec.
+- [x] add support encrypt and decrypt.
