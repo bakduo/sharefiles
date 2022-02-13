@@ -7,7 +7,7 @@ const finished = util.promisify(stream.finished);
 import { unlinkSync } from 'fs';
 import * as fs from 'fs';
 import { IGenericDB } from '../datasources';
-import { LinkUser } from '../dao';
+import { LinkUser, MLinkUser } from '../dao';
 import { LinkUserDTO } from '../dto/link-user';
 import { tokenEnc, appconfig, encryptFile, loggerApp } from '../initconfig';
 import { EncodeFileStreamCipher, ICollector } from '../services';
@@ -43,9 +43,10 @@ export class ArchivoController {
 
     dmodel : IGenericDB<LinkUser | LinkUserDTO >;
 
-    constructor(dao:IGenericDB<LinkUser|LinkUserDTO>){
+    constructor(){
 
-      this.dmodel = dao;
+      this.dmodel = new MLinkUser();
+
       //https://stackoverflow.com/questions/31362292/how-to-use-arrow-functions-public-class-fields-as-class-methods
       //It's not Good for me. I prefeer arrow function
       //this.saveMultiControl = this.saveMultiControl.bind(this);
