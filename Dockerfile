@@ -6,7 +6,7 @@ LABEL maintainer="bakduo"
 USER node
 
 # Create app directory (with user `node`)
-RUN mkdir -p /home/node/app
+RUN mkdir -p /home/node/app && mkdir /home/node/app/config /home/node/app/log /home/node/app/uploads
 
 WORKDIR /home/node/app
 
