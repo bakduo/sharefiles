@@ -8,6 +8,7 @@ export interface IConfigDB {
             secure:number;
             models:[];
             schema:object;
+            ssl:boolean;
         }
     }
     port:number;
@@ -27,5 +28,6 @@ export interface IConfigDB {
         server:string,
         port:number,
         secret:string;
+        ssl:boolean;
     }
 }

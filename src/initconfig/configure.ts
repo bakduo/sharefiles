@@ -45,7 +45,8 @@ export const connectionDB = MongoConnect.getInstance(
   appconfig.db.mongo.url,
   appconfig.db.mongo.user,
   appconfig.db.mongo.pass,
-  appconfig.db.mongo.dbname).getConnection();
+  appconfig.db.mongo.dbname,
+  appconfig.db.mongo.ssl).getConnection();
 
 export const encryptFile = new CipherFile({
   algorithm:appconfig.encrypt.algorithm,

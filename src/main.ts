@@ -16,14 +16,14 @@ app.use(cookieParser());
 
 app.use(
   session({
-    secret: appconfig.session.secret || 'eb4378274c564f2d56b2316f976cb86bf76643159b21',
+    secret: appconfig.session.secret || 'changeme',
     resave: false,
     saveUninitialized: false,
     store: new MemcachedStore({
       ttl: 1,
       hosts: [`${appconfig.memcached.server}:${appconfig.memcached.port}`],
       secret: appconfig.memcached.secret, // Optionally use transparent encryption for memcache session data,
-      prefix: "sharelink_"
+      prefix: "sharedlink_"
     })
   }),
 );

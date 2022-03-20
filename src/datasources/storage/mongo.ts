@@ -8,20 +8,28 @@ export default class MongoConnect {
 
     private static instance: MongoConnect;
 
-    private constructor(url:string,user:string,pass:string,dbname:string){
+    private constructor(url:string,user:string,pass:string,dbname:string,_secure:boolean){
         this.url = url;
-        this.connection = createConnection(this.url, {
-            ssl: true,
-            dbName:dbname,
-            user:user,
-            pass:pass
-            
-          });
+
+        if (!_secure){
+            this.connection = createConnection(this.url, {
+                dbName:dbname,
+                user:user,
+                pass:pass
+              });    
+        }else{
+            this.connection = createConnection(this.url, {
+                ssl: true,
+                dbName:dbname,
+                user:user,
+                pass:pass
+              });
+        }
     }
 
-    public static getInstance(url:string,user:string,pass:string,dbname:string): MongoConnect {
+    public static getInstance(url:string,user:string,pass:string,dbname:string,secure:boolean): MongoConnect {
         if (!MongoConnect.instance) {
-            MongoConnect.instance = new MongoConnect(url,user,pass,dbname);
+            MongoConnect.instance = new MongoConnect(url,user,pass,dbname,secure);
         }
 
         return MongoConnect.instance;
