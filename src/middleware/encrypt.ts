@@ -15,11 +15,9 @@ export const encriptFiles = async (req:CustomRequest,res:express.Response,next:e
 
     const collection:ICollector = req.listFiles as ICollector;
 
-    const archivos = collection.getAll();
-
     const daoLink = new MLinkUser();
 
-    const promiseFiles = archivos.map(async (item:ItemFile)=>{
+    const promiseFiles = collection.getAll().map(async (item:ItemFile)=>{
 
         const file = appconfig.rootpathfile + item.name;
 
@@ -39,6 +37,8 @@ export const encriptFiles = async (req:CustomRequest,res:express.Response,next:e
                 if (err) {
     
                     loggerApp.error('Pipeline into middleware failed', err);
+
+                    collection.clear();
     
                     throw new Error(`Exception on Pipeline into middleware failed: ${err.message}`);
     
@@ -55,7 +55,7 @@ export const encriptFiles = async (req:CustomRequest,res:express.Response,next:e
 
     try {
 
-        const saveRecords = archivos.map(async (item:ItemFile)=>{
+        const saveRecords = collection.getAll().map(async (item:ItemFile)=>{
 
             const idFile = uuid();
             //Hasta 4 dias
@@ -69,6 +69,8 @@ export const encriptFiles = async (req:CustomRequest,res:express.Response,next:e
                 const err = error as MyType;
     
                 loggerApp.error(`Exception on encrypt.encrypt: ${err.message}`);
+
+                collection.clear();
     
                 throw new Error(`Exception on IHashCiper into file`);
             }
@@ -95,6 +97,8 @@ export const encriptFiles = async (req:CustomRequest,res:express.Response,next:e
                 const err = error as MyType;
     
                 fs.unlinkSync(appconfig.rootpathfile+item.name+".enc");
+
+                collection.clear();
     
                 loggerApp.error(`Exception on this.dmodel.saveOne into MongoDB ${err.message}`);
     
@@ -110,6 +114,8 @@ export const encriptFiles = async (req:CustomRequest,res:express.Response,next:e
         req.linksLoad = allItems.map((item)=>{
             return {link:item.url,name:item.origname}
         })
+
+        collection.clear();
             
         return next();
 
