@@ -29,6 +29,3 @@ routerArchivo.post('/uploadfilescheck',[
   controller.saveMultiControl);
 
 routerArchivo.get('/:id',[protectionMiddleware],controller.getFile);
-
-  
-  

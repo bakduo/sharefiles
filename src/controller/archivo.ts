@@ -133,7 +133,7 @@ export class ArchivoController {
         try {
 
           if (linksFiles){
-            return res.status(200).json({files:linksFiles,status:true,message:'OK files'});
+            return res.status(201).json({files:linksFiles,status:true,message:'OK files'});
           }
 
           return res.status(404).json({files:linksFiles,status:false,message:`Not files exists`});

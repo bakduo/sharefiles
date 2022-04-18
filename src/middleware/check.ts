@@ -4,9 +4,9 @@ import imageType from 'image-type';
 import {Response, NextFunction} from 'express';
 import { appconfig } from '../initconfig/configure';
 import { ICollector, ItemFile } from '../services/upload';
-import mime from 'serve-static/node_modules/@types/mime';
-
-
+//import mime from 'serve-static/node_modules/@types/mime';
+import * as mime  from 'mime-types';
+ 
 //TODO unify
 const MimeAvailableImage:string[] = ['image/png','image/jpg','image/jpeg'];
 
@@ -24,7 +24,9 @@ export const checkFiles = async (req:CustomRequest,res:Response,next:NextFunctio
     
             const file = appconfig.rootpathfile + item.name;
     
-            if (MimeAvailableImage.includes(mime.lookup(file))){
+            const typeFile = mime.lookup(file) || '';
+
+            if (MimeAvailableImage.includes(typeFile)){
                 const buff = Buffer.alloc(12);
 
                 const fd = openSync(file, 'r');
@@ -50,7 +52,9 @@ export const checkFiles = async (req:CustomRequest,res:Response,next:NextFunctio
 
             }else{
 
-                if (MimeAvailableOther.includes(mime.lookup(file))){
+                const typeFile = mime.lookup(file) || '';
+
+                if (MimeAvailableOther.includes(typeFile)){
                     return true;
                 }
                 return false;

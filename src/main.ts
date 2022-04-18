@@ -1,7 +1,6 @@
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import {Request, Response, NextFunction} from 'express';
-
 import session from 'express-session';
 import { routerGlobal } from './routes/index';
 import ConnectMemcached = require('connect-memcached');
