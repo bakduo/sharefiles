@@ -19,10 +19,12 @@
 <body>
     
     <div class="jumbotron">
+
         <center>
             <h1 class="display-4">Sharefiles</h1>
             <p class="lead">Upload files and sharelinks.</p>    
         </center>
+
 
         <form  id="formUpload" enctype="multipart/form-data" action="/uploadfilescheck" method="post">
  
@@ -32,20 +34,31 @@
     
         </form>
 
-        <hr class="my-4">
+        <br>
     
-        <input type="Submit" id="enviarfile" onclick="sendFile();" class="btn btn-primary btn-lg" value="Submit"/>
+        <center>
 
-        <hr class="my-4">
+            <input type="Submit" id="enviarfile" onclick="sendFile();" class="btn btn-primary btn-lg" value="Submit"/>
 
+        </center>
         
-    
+
+        <hr class="my-4">
+
     </div>
 
     <div id="resultado" class="container">
         
     </div>
 
+
+    <!-- IGNORE -->
+    <center>
+        <div class="copyright">
+            By <a href="https://sharelinks.oncosmos.com">Oncosmos</a>.
+        </div>
+    </center>
+    
 
     <script src="js/main.js"></script>
 

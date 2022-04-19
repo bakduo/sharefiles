@@ -5,6 +5,8 @@ import { CipherFile, EncodeFileStreamCipher } from "../src/services/cipher";
 import * as stream from 'stream';
 import * as util from 'util';
 const finished = util.promisify(stream.finished);
+const cwd = process.cwd();
+const filePath = cwd + '/_test_/asset';
 
 describe('Test CipherFile UNIT',() => {
 
@@ -17,7 +19,7 @@ describe('Test CipherFile UNIT',() => {
     before(async function(){
         console.log("###############BEGIN TEST#################");
     
-        const writableStreamEvent = fs.createWriteStream('sample.txt');
+        const writableStreamEvent = fs.createWriteStream(`${filePath}/sample.txt`);
 
         writableStreamEvent.on('finish', function () {
             console.log('file has been written ORIG!');
@@ -33,21 +35,21 @@ describe('Test CipherFile UNIT',() => {
 
         console.log("###############CLEAR DB TEST#################");
 
-        fs.unlinkSync("sample.txt");
+        fs.unlinkSync(`${filePath}/sample.txt`);
         
-        fs.unlinkSync("sampleEnc.txt");
+        fs.unlinkSync(`${filePath}/sampleEnc.txt`);
 
-        fs.unlinkSync('/tmp/sample.orig.png');
+        fs.unlinkSync(`${filePath}/sample.enc`);
 
-        fs.unlinkSync('/tmp/sample.enc');
+        fs.unlinkSync(`${filePath}/sample.orig.png`);
     });
 
     describe('Enc file text', () => {
         it('debería enc & des un texto', async () => {
             
-            const readableStreamEvent = fs.createReadStream('sample.txt');
+            const readableStreamEvent = fs.createReadStream(`${filePath}/sample.txt`);
 
-            const writableStreamEventEnc = new EncodeFileStreamCipher('sampleEnc.txt',encrypt,true);
+            const writableStreamEventEnc = new EncodeFileStreamCipher(`${filePath}/sampleEnc.txt`,encrypt,true);
 
             await finished(stream.pipeline(
 
@@ -66,9 +68,9 @@ describe('Test CipherFile UNIT',() => {
 
              //DEC
 
-             const readableStreamEventDec = fs.createReadStream('sampleEnc.txt');
+             const readableStreamEventDec = fs.createReadStream(`${filePath}/sampleEnc.txt`);
 
-             const writableStreamEventDec = new EncodeFileStreamCipher('sampleDec.txt',encrypt,false);
+             const writableStreamEventDec = new EncodeFileStreamCipher(`${filePath}sampleDec.txt`,encrypt,false);
 
              await finished(stream.pipeline(
 
@@ -94,9 +96,9 @@ describe('Test CipherFile UNIT',() => {
 
         it('debería enc & dec una imagen', async () => {
             
-            const readableStreamEvent = fs.createReadStream('/tmp/sample.png');
+            const readableStreamEvent = fs.createReadStream(`${filePath}/sample.png`);
 
-            const writableStreamEventEnc = new EncodeFileStreamCipher('/tmp/sample.enc',encrypt,true);
+            const writableStreamEventEnc = new EncodeFileStreamCipher(`${filePath}/sample.enc`,encrypt,true);
 
             await finished(stream.pipeline(
 
@@ -113,9 +115,9 @@ describe('Test CipherFile UNIT',() => {
                 }
             ));
 
-            const readableStreamEventDec = fs.createReadStream('/tmp/sample.enc');
+            const readableStreamEventDec = fs.createReadStream(`${filePath}/sample.enc`);
 
-            const writableStreamEventDec = new EncodeFileStreamCipher('/tmp/sample.orig.png',encrypt,false);
+            const writableStreamEventDec = new EncodeFileStreamCipher(`${filePath}/sample.orig.png`,encrypt,false);
 
             await finished(stream.pipeline(
 
