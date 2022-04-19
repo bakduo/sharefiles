@@ -29,11 +29,12 @@ let MSend = (function(){
                 .then((response)=>{
 
                     if (response.ok){
-                        return response.json();
+                        link.innerHTML = "Procesando...Ok"
                     }else{
-
-                        throw new Error(`Network response was not OK`);
+                        link.innerHTML = "Denegado..."
                     }
+                    
+                    return response.json();
 
                 })
                 .then((datajson)=>{
@@ -46,11 +47,11 @@ let MSend = (function(){
                         });
                         
                     }else{
-                        link.innerHTML = "No fue posible procesarlo"
+                        link.innerHTML = `Upload, ${datajson.message}`
                     }
                 })
                 .catch((error)=>{
-                    link.innerHTML = `No fue Enviado...${error}`;
+                    link.innerHTML = `Upload, ${error.message}`;
                 })
 
                 

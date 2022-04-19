@@ -55,6 +55,6 @@ app.use((err:errorType, req:Request, res:Response, next:NextFunction)=> {
   }
 
   // handle CSRF token errors here
-  return res.status(403).json({message:'Request denied'});
+  return res.status(403).json({message:`Request denied: ${err.message}`});
 });
 
