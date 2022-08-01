@@ -10,6 +10,10 @@ import { parse } from 'node-html-parser';
 
 const request = supertest(app);
 
+const cwd = process.cwd();
+
+const filePath = cwd + '/_test_/asset';
+
 describe('Test file upload UNIT',() => {
 
     
@@ -32,7 +36,7 @@ describe('Test file upload UNIT',() => {
             internal:'internal3'},
         ];
         
-        fs.writeFileSync('sample.json',JSON.stringify(tmpJson),'utf8');
+        fs.writeFileSync(`${filePath}/sample.json`,JSON.stringify(tmpJson),'utf8');
         
     });
 
@@ -40,7 +44,7 @@ describe('Test file upload UNIT',() => {
 
         console.log("###############END DB TEST#################");
 
-        fs.unlinkSync('sample.json');
+        fs.unlinkSync(`${filePath}/sample.json`);
     
     });
 
@@ -62,7 +66,7 @@ describe('Test file upload UNIT',() => {
 
         it('Post file test', async () => {
 
-            const response = await request.post(`/uploadfilescheck`).type('form').set('cookies', cookies).set('CSRF-Token',token).attach('archivosuser', 'sample.json');
+            const response = await request.post(`/uploadfilescheck`).type('form').set('cookies', cookies).set('CSRF-Token',token).attach('archivosuser', `${filePath}/sample.json`);
 
             const serviceSave = response.body;
 
@@ -70,7 +74,7 @@ describe('Test file upload UNIT',() => {
 
             expect(serviceSave).to.include.keys('message');
 
-            expect(serviceSave.message).to.eql('Request denied'); 
+            expect(serviceSave.message).to.eql('Request denied: invalid csrf token'); 
         })
     })
 
