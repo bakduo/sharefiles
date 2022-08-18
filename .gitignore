@@ -167,3 +167,4 @@ deploy-sharefiles.yml
 deploy-memcached-2.yml
 deploy-apps.yml
 nginx/
+.vscode/

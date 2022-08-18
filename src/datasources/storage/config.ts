@@ -29,5 +29,12 @@ export interface IConfigDB {
         port:number,
         secret:string;
         ssl:boolean;
+    },
+    rabbitmq:{
+        server:string,
+        port:number,
+        user:string,
+        pass:string,
+        vhost: string,
     }
 }
