@@ -11,3 +11,4 @@ Sharefiles by ephemeral user.
 - [X] EJS.
 - [X] Container. support PM2 and normal exec.
 - [X] add support encrypt and decrypt.
+- [X] rabbitmq queue
